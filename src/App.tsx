@@ -4,6 +4,7 @@ import { Brain } from 'lucide-react';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Notes from './pages/Notes';
+import Chatbot from './pages/Chatbot';
 import Calendar from './pages/Calendar';
 import Clients from './pages/Clients';
 import Projects from './pages/Projects';
@@ -45,6 +46,7 @@ function App() {
           >
             <Route index element={<Dashboard />} />
             <Route path="notes" element={<Notes />} />
+            <Route path="chatbot" element={<Chatbot />} />
             <Route path="calendar" element={<Calendar />} />
             <Route path="clients" element={<Clients />} />
             <Route path="projects" element={<Projects />} />

@@ -30,9 +30,18 @@ export const useNoteStore = create<NoteState>((set, get) => ({
   fetchNotes: async () => {
     try {
       set({ loading: true, error: null });
+      
+      // Get the current user's ID
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error('You must be logged in to view notes');
+      }
+
       const { data, error } = await supabase
         .from('notes')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -49,10 +58,19 @@ export const useNoteStore = create<NoteState>((set, get) => ({
     
     try {
       set({ loading: true, error: null });
+
+      // Get the current user's ID
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error('You must be logged in to view project notes');
+      }
+
       const { data, error } = await supabase
         .from('notes')
         .select('*')
         .eq('project_id', projectId)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -168,11 +186,19 @@ export const useNoteStore = create<NoteState>((set, get) => ({
     try {
       set({ loading: true, error: null });
 
+      // Get the current user's ID
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error('You must be logged in to update notes');
+      }
+
       // Get the note first to check if it's a project note
       const { data: noteData, error: noteError } = await supabase
         .from('notes')
         .select('project_id')
         .eq('id', id)
+        .eq('user_id', user.id)
         .single();
         
       if (noteError) {
@@ -194,7 +220,8 @@ export const useNoteStore = create<NoteState>((set, get) => ({
           content: content,
           content_vector: response.data[0].embedding
         })
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id);
 
       if (error) {
         console.error('Update note error:', error);
@@ -218,39 +245,33 @@ export const useNoteStore = create<NoteState>((set, get) => ({
   deleteNote: async (id: string) => {
     try {
       set({ loading: true, error: null });
+
+      // Get the current user's ID
+      const { data: { user } } = await supabase.auth.getUser();
       
-      // Get the note first to check if it's a project note
-      const { data: noteData, error: noteError } = await supabase
-        .from('notes')
-        .select('project_id')
-        .eq('id', id)
-        .single();
-        
-      if (noteError) {
-        console.error('Error fetching note:', noteError);
-        throw noteError;
+      if (!user) {
+        throw new Error('You must be logged in to delete notes');
       }
-      
-      // Delete note directly from the database
+
+      // Call the delete_note RPC function
       const { error } = await supabase
-        .from('notes')
-        .delete()
-        .eq('id', id);
+        .rpc('delete_note', {
+          note_id: id
+        });
       
       if (error) {
         console.error('Delete note error:', error);
         throw error;
       }
-      
-      // Update the local state to remove the deleted note
+
+      // Update the local state immediately
       set((state) => ({
-        notes: state.notes.filter((note) => note.id !== id),
+        notes: state.notes.filter((note) => note.id !== id)
       }));
+
+      // Refresh the notes list
+      await get().fetchNotes();
       
-      // If it was a project note, refresh the project notes
-      if (noteData?.project_id) {
-        await get().fetchProjectNotes(noteData.project_id);
-      }
     } catch (error) {
       console.error('Error deleting note:', error);
       set({ error: (error as Error).message });

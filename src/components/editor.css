@@ -1,0 +1,29 @@
+.editor-container {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+}
+
+.editor-container .ProseMirror {
+  min-height: 100%;
+  outline: none;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.editor-container .ProseMirror p {
+  margin: 0;
+  padding: 0;
+}
+
+.editor-container .ProseMirror > * + * {
+  margin-top: 0.75em;
+}
+
+/* Placeholder styles */
+.editor-container .ProseMirror p.is-editor-empty:first-child::before {
+  color: #9ca3af;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+} 
