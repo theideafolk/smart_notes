@@ -256,33 +256,37 @@ export async function searchWeb(query: string): Promise<string> {
 }
 
 // Generate an answer based on a query and relevant notes
-export async function generateAnswer(query: string, notes: Note[]): Promise<string> {
+export async function generateAnswer(query: string, notes: Note[]): Promise<string | null> {
   try {
-    // Create context from notes
-    const context = notes.map(note => 
-      `Note Title: ${note.title}\nContent: ${note.content}`
-    ).join('\n\n');
-    
+    // If no notes provided, return null
+    if (!notes || notes.length === 0) {
+      return null;
+    }
+
+    // Create context from the provided notes only
+    const context = notes.map(note => `Note "${note.title}":\n${note.content}`).join('\n\n');
+
+    // Generate answer using only the provided context
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: "gpt-3.5-turbo",
       messages: [
         {
-          role: 'system',
-          content: 'You are a helpful assistant that answers questions based on the provided notes. Use only the information in the notes to answer the question. If the notes do not contain enough information to answer the question, say so.'
+          role: "system",
+          content: "You are a helpful assistant that answers questions based only on the provided notes. If the answer cannot be found in the provided notes, say so - do not use any external knowledge."
         },
         {
-          role: 'user',
-          content: `Context:\n${context}\n\nQuestion: ${query}`
+          role: "user",
+          content: `Here are the notes to use as context:\n\n${context}\n\nQuestion: ${query}\n\nAnswer only using information from the provided notes. If the information isn't in these notes, say so.`
         }
       ],
-      temperature: 0.5,
-      max_tokens: 500,
+      temperature: 0.7,
+      max_tokens: 500
     });
-    
-    return response.choices[0].message.content || 'I could not generate an answer based on the available information.';
+
+    return response.choices[0]?.message?.content || null;
   } catch (error) {
     console.error('Error generating answer:', error);
-    return 'Failed to generate an answer';
+    return null;
   }
 }
 
