@@ -4,6 +4,3 @@
 
 [build.environment]
   SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_ANON_KEY,VITE_OPENAI_API_KEY"
-
-[[plugins]]
-  package = "@netlify/plugin-ignore-build-step"
