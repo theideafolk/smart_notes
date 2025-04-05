@@ -2,6 +2,10 @@
 node_modules
 venv/
 .env
+<<<<<<< Updated upstream
+=======
+<<<<<<< HEAD
+>>>>>>> Stashed changes
 
 # Testing
 coverage
@@ -9,6 +13,10 @@ coverage
 # Production
 build
 dist
+<<<<<<< Updated upstream
+=======
+dist/assets/
+>>>>>>> Stashed changes
 
 # Misc
 .DS_Store
@@ -29,3 +37,8 @@ yarn-error.log*
 # Supabase
 supabase/supabase/
 supabase/.temp/
+<<<<<<< Updated upstream
+=======
+=======
+>>>>>>> parent of ce39566 (Updated .gitignore to include additional entries for dependencies, testing, production, IDE, and debug logs.)
+>>>>>>> Stashed changes

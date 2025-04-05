@@ -54,6 +54,7 @@ export interface Note {
   content_vector?: number[];
   client_id?: string;
   project_id?: string;
+  folder_id?: string;
   user_id: string;
   created_at: string;
   similarity?: number; // For search results

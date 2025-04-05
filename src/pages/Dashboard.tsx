@@ -73,7 +73,11 @@ function Dashboard() {
               displayedNotes.map((note: Note) => (
                 <Link
                   key={note.id}
+<<<<<<< Updated upstream
                   to={`/notes/${note.id}`}
+=======
+                  to={`/notes?id=${note.id}`}
+>>>>>>> Stashed changes
                   className={`
                     block p-4 
                     bg-white 

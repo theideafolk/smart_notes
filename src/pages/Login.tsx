@@ -1,15 +1,22 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Brain, Loader2, Mail, Lock, User } from 'lucide-react';
+import { Brain, Loader2, Mail, Lock, User, Calendar, Phone } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
+import SplitPhoneInput from '../components/SplitPhoneInput';
+import AvatarSelector from '../components/AvatarSelector';
 
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [mobileNumber, setMobileNumber] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [avatar, setAvatar] = useState('profile.png'); // Default avatar
   const [isSignUp, setIsSignUp] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showAvatarSelector, setShowAvatarSelector] = useState(false);
   const navigate = useNavigate();
   const { signIn, signUp } = useAuthStore();
 
@@ -20,10 +27,10 @@ function Login() {
     
     try {
       if (isSignUp) {
-        if (!email || !password || !fullName) {
-          throw new Error('Please fill in all fields');
+        if (!email || !password || !firstName || !lastName) {
+          throw new Error('Please fill in all required fields');
         }
-        await signUp(email, password, fullName);
+        await signUp(email, password, firstName, lastName, mobileNumber, dateOfBirth, avatar);
         // Show more friendly message about email verification being disabled
         alert('Account created successfully! You can now sign in with your credentials.');
         setIsSignUp(false);
@@ -40,6 +47,18 @@ function Login() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleModeSwitch = () => {
+    setIsSignUp(!isSignUp);
+    setError('');
+    setEmail('');
+    setPassword('');
+    setFirstName('');
+    setLastName('');
+    setMobileNumber('');
+    setDateOfBirth('');
+    setAvatar('profile.png');
   };
 
   return (
@@ -72,27 +91,116 @@ function Login() {
             )}
 
             {isSignUp && (
-              <div className="space-y-1">
-                <label
-                  htmlFor="fullName"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Full Name
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    id="fullName"
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                    placeholder="John Doe"
-                  />
+              <>
+                {/* Avatar Selection */}
+                <div className="flex justify-center mb-6">
+                  <button
+                    type="button"
+                    onClick={() => setShowAvatarSelector(true)}
+                    className="relative group"
+                  >
+                    <img
+                      src={`/${avatar}`}
+                      alt="Selected avatar"
+                      className="w-24 h-24 rounded-full border-2 border-gray-200 group-hover:border-primary transition-colors"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className="text-white text-sm">Change Avatar</span>
+                    </div>
+                  </button>
                 </div>
-              </div>
+
+                {/* First Name and Last Name */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label
+                      htmlFor="firstName"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      First Name
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <User className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                        id="firstName"
+                        type="text"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                        placeholder="John"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label
+                      htmlFor="lastName"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Last Name
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <User className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <input
+                        id="lastName"
+                        type="text"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                        placeholder="Doe"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mobile Number */}
+                <div className="space-y-1">
+                  <label
+                    htmlFor="mobileNumber"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Mobile Number
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Phone className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <SplitPhoneInput
+                      value={mobileNumber}
+                      onChange={setMobileNumber}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+
+                {/* Date of Birth */}
+                <div className="space-y-1">
+                  <label
+                    htmlFor="dateOfBirth"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Date of Birth
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Calendar className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      id="dateOfBirth"
+                      type="date"
+                      value={dateOfBirth}
+                      onChange={(e) => setDateOfBirth(e.target.value)}
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                    />
+                  </div>
+                </div>
+              </>
             )}
 
             <div className="space-y-1">
@@ -165,10 +273,7 @@ function Login() {
             <div className="text-center mt-6">
               <button
                 type="button"
-                onClick={() => {
-                  setIsSignUp(!isSignUp);
-                  setError('');
-                }}
+                onClick={handleModeSwitch}
                 className="text-primary hover:underline"
               >
                 {isSignUp ? 'Already have an account? Sign in' : 'Need an account? Sign up'}
@@ -181,6 +286,16 @@ function Login() {
           By signing in, you agree to our Terms of Service and Privacy Policy.
         </p>
       </div>
+
+      <AvatarSelector
+        isOpen={showAvatarSelector}
+        onClose={() => setShowAvatarSelector(false)}
+        onSelect={(selectedAvatar) => {
+          setAvatar(selectedAvatar);
+          setShowAvatarSelector(false);
+        }}
+        currentAvatar={avatar}
+      />
     </div>
   );
 }

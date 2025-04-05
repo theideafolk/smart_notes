@@ -1,27 +1,51 @@
 import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
 import { openai } from '../lib/openai';
-import type { Note, SearchResult } from '../types';
 import { searchSimilarNotes, generateAnswer } from '../services/searchService';
+import { generateAndStoreSummary } from '../components/NoteSummaryPanel';
+
+export interface Note {
+  id: string;
+  title: string;
+  content: string;
+  folder_id: string | null;
+  project_id?: string | null;
+  client_id?: string | null;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SearchResult {
+  query: string;
+  answer: string;
+  relatedNotes: Note[];
+}
 
 interface NoteState {
   notes: Note[];
+  currentNote: Note | null;
   loading: boolean;
   searching: boolean;
   searchResult: SearchResult | null;
   error: string | null;
   fetchNotes: () => Promise<void>;
   fetchProjectNotes: (projectId: string) => Promise<void>;
-  createNote: (title: string, content: string) => Promise<void>;
+  fetchFolderNotes: (folderId: string) => Promise<void>;
+  createNote: (title: string, content: string, folderId?: string | null) => Promise<Note | null>;
   createProjectNote: (title: string, content: string, projectId: string) => Promise<void>;
   updateNote: (id: string, title: string, content: string) => Promise<void>;
   deleteNote: (id: string) => Promise<void>;
   searchNotes: (query: string) => Promise<void>;
   clearSearchResult: () => void;
+  setCurrentNote: (note: Note | null) => void;
+  moveNote: (noteId: string, targetFolderId: string | null) => Promise<void>;
+  copyNote: (noteId: string, targetFolderId: string | null) => Promise<Note | null>;
 }
 
 export const useNoteStore = create<NoteState>((set, get) => ({
   notes: [],
+  currentNote: null,
   loading: false,
   searching: false,
   searchResult: null,
@@ -82,7 +106,36 @@ export const useNoteStore = create<NoteState>((set, get) => ({
     }
   },
 
-  createNote: async (title: string, content: string) => {
+  fetchFolderNotes: async (folderId: string) => {
+    if (!folderId) return;
+    
+    try {
+      set({ loading: true, error: null });
+
+      // Get the current user's ID
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error('You must be logged in to view folder notes');
+      }
+
+      const { data, error } = await supabase
+        .from('notes')
+        .select('*')
+        .eq('folder_id', folderId)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      set({ notes: data || [] });
+    } catch (error) {
+      set({ error: (error as Error).message });
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  createNote: async (title: string, content: string, folderId?: string | null) => {
     try {
       set({ loading: true, error: null });
 
@@ -112,19 +165,37 @@ export const useNoteStore = create<NoteState>((set, get) => ({
           content_vector: response.data[0].embedding,
           user_id: user.id,
           project_id: project_id,
-          client_id: client_id
+          client_id: client_id,
+          folder_id: folderId
         }])
-        .select();
+        .select('id, title, content, folder_id, user_id, created_at, updated_at')
+        .single();
 
       if (error) {
         console.error('Create note error:', error);
         throw error;
       }
+
+      // Generate summary for the new note
+      if (data) {
+        try {
+          await generateAndStoreSummary(data.id, content, true);
+        } catch (summaryError) {
+          console.error('Error generating summary:', summaryError);
+          // Don't throw the error as the note was still created successfully
+        }
+      }
       
-      await get().fetchNotes();
+      if (folderId) {
+        await get().fetchFolderNotes(folderId);
+      } else {
+        await get().fetchNotes();
+      }
+      return data;
     } catch (error) {
       console.error('Error creating note:', error);
       set({ error: (error as Error).message });
+      return null;
     } finally {
       set({ loading: false });
     }
@@ -227,6 +298,14 @@ export const useNoteStore = create<NoteState>((set, get) => ({
         console.error('Update note error:', error);
         throw error;
       }
+
+      // Generate new summary for the updated note
+      try {
+        await generateAndStoreSummary(id, content, true);
+      } catch (summaryError) {
+        console.error('Error generating summary:', summaryError);
+        // Don't throw the error as the note was still updated successfully
+      }
       
       // If it's a project note, fetch only project notes
       if (noteData?.project_id) {
@@ -253,7 +332,18 @@ export const useNoteStore = create<NoteState>((set, get) => ({
         throw new Error('You must be logged in to delete notes');
       }
 
-      // Call the delete_note RPC function
+      // Delete the note summary first
+      const { error: summaryError } = await supabase
+        .from('note_summaries')
+        .delete()
+        .eq('note_id', id);
+
+      if (summaryError) {
+        console.error('Error deleting note summary:', summaryError);
+        // Continue with note deletion even if summary deletion fails
+      }
+
+      // Call the delete_note RPC function to delete the note
       const { error } = await supabase
         .rpc('delete_note', {
           note_id: id
@@ -308,4 +398,37 @@ export const useNoteStore = create<NoteState>((set, get) => ({
   clearSearchResult: () => {
     set({ searchResult: null });
   },
+
+  setCurrentNote: (note: Note | null) => {
+    set({ currentNote: note });
+  },
+
+  moveNote: async (noteId: string, targetFolderId: string | null) => {
+    try {
+      const { error } = await supabase.rpc('move_note', {
+        note_id: noteId,
+        target_folder_id: targetFolderId
+      });
+      if (error) throw error;
+      await get().fetchNotes();
+    } catch (error) {
+      console.error('Error moving note:', error);
+      throw error;
+    }
+  },
+
+  copyNote: async (noteId: string, targetFolderId: string | null) => {
+    try {
+      const { data, error } = await supabase.rpc('copy_note', {
+        note_id: noteId,
+        target_folder_id: targetFolderId
+      });
+      if (error) throw error;
+      await get().fetchNotes();
+      return data;
+    } catch (error) {
+      console.error('Error copying note:', error);
+      throw error;
+    }
+  }
 }));

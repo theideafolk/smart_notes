@@ -33,21 +33,21 @@ export async function searchSimilarNotes(query: string, limit = 5): Promise<Note
     // Generate embedding for the query
     const embedding = await generateEmbedding(query);
     
-    // Search for similar notes using vector similarity
+    // Search for similar notes using vector similarity with a higher threshold
     const { data, error } = await supabase.rpc('match_notes', {
       query_embedding: embedding,
-      match_threshold: 0.5,
+      match_threshold: 0.78, // Increased threshold for better relevance
       match_count: limit,
     });
     
     if (error) throw error;
     
-    return data as Note[];
+    // Filter out results with low similarity scores
+    const results = (data as Note[]).filter(note => note.similarity && note.similarity >= 0.78);
+    return results;
   } catch (error) {
     console.error('Error searching similar notes:', error);
-    
-    // Fallback to manual search if vector search fails
-    return searchNotesByText(query, limit);
+    return []; // Remove fallback to text search as it's less accurate
   }
 }
 

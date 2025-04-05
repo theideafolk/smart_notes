@@ -8,7 +8,7 @@ interface AuthState {
   loading: boolean;
   setUser: (user: any | null) => void;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, fullName?: string) => Promise<void>;
+  signUp: (email: string, password: string, firstName: string, lastName: string, mobileNumber?: string, dateOfBirth?: string, avatar?: string) => Promise<void>;
   signOut: () => Promise<void>;
   updateUserProfile: (updates: Partial<User>) => Promise<void>;
   fetchUserProfile: () => Promise<void>;
@@ -38,7 +38,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (error) throw error;
   },
   
-  signUp: async (email, password, fullName = '') => {
+  signUp: async (email: string, password: string, firstName: string, lastName: string, mobileNumber?: string, dateOfBirth?: string, avatar?: string) => {
     try {
       // Check if user already exists to provide better error message
       const { data: existingUsers } = await supabase
@@ -64,7 +64,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         const { error: profileError } = await supabase.rpc('create_user_profile', {
           user_id: data.user.id,
           user_email: email,
-          user_full_name: fullName
+          user_first_name: firstName,
+          user_last_name: lastName,
+          user_mobile_number: mobileNumber || null,
+          user_date_of_birth: dateOfBirth ? new Date(dateOfBirth).toISOString() : null,
+          user_avatar: avatar || 'profile.png'
         });
         
         if (profileError) {
@@ -94,10 +98,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     // Use RPC function to update profile that handles RLS
     const { error } = await supabase.rpc('update_user_profile', {
       user_id: user.id,
-      full_name: updates.full_name,
-      work_hours_start: updates.work_hours_start,
-      work_hours_end: updates.work_hours_end,
-      work_days: updates.work_days
+      first_name: updates.first_name || null,
+      last_name: updates.last_name || null,
+      mobile_number: updates.mobile_number || null,
+      date_of_birth: updates.date_of_birth || null,
+      avatar: updates.avatar || null
     });
       
     if (error) {

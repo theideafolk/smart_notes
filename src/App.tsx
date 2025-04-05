@@ -11,6 +11,7 @@ import Projects from './pages/Projects';
 import Analytics from './pages/Analytics';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
+import Folders from './pages/Folders';
 import { useAuthStore } from './store/authStore';
 import { supabase } from './lib/supabase';
 
@@ -46,6 +47,7 @@ function App() {
           >
             <Route index element={<Dashboard />} />
             <Route path="notes" element={<Notes />} />
+            <Route path="folders" element={<Folders />} />
             <Route path="chatbot" element={<Chatbot />} />
             <Route path="calendar" element={<Calendar />} />
             <Route path="clients" element={<Clients />} />

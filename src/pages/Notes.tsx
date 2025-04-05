@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { FileText, Plus, Loader2 } from 'lucide-react';
-import { useNoteStore } from '../store/noteStore';
-import { Note } from '../types';
+import { useNoteStore, type Note } from '../store/noteStore';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import Editor from '../components/Editor';
+import NoteSummaryPanel from '../components/NoteSummaryPanel';
 
 function Notes() {
   const { 
@@ -14,10 +14,10 @@ function Notes() {
     createNote, 
     updateNote, 
     deleteNote,
+    fetchFolderNotes
   } = useNoteStore();
   
   const [editingNote, setEditingNote] = useState<Note | null>(null);
-  const [isCreatingNote, setIsCreatingNote] = useState(false);
   const [newNoteTitle, setNewNoteTitle] = useState('');
   const [newNoteContent, setNewNoteContent] = useState('');
   const [editedContent, setEditedContent] = useState('');
@@ -26,10 +26,33 @@ function Notes() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const noteId = searchParams.get('id');
+  const folderId = searchParams.get('folderId');
 
   useEffect(() => {
-    fetchNotes();
-  }, [fetchNotes]);
+    console.log('Notes component mounted/updated with:', { noteId, folderId });
+    console.log('Current notes:', notes);
+    if (folderId) {
+      console.log('Fetching notes for folder:', folderId);
+      fetchFolderNotes(folderId);
+    } else {
+      console.log('Fetching all notes');
+      fetchNotes();
+    }
+  }, [fetchNotes, fetchFolderNotes, folderId]);
+
+  useEffect(() => {
+    console.log('Note ID changed:', noteId);
+    console.log('Folder ID changed:', folderId);
+    if (!noteId) {
+      console.log('Resetting form state for new note');
+      setEditingNote(null);
+      setEditedContent('');
+      setEditedTitle('');
+      setNewNoteTitle('');
+      setNewNoteContent('');
+      setHasChanges(false);
+    }
+  }, [noteId, folderId]);
 
   useEffect(() => {
     if (noteId) {
@@ -42,21 +65,24 @@ function Notes() {
           setHasChanges(false);
         }
       }
-    } else {
-      setEditingNote(null);
-      setEditedContent('');
-      setEditedTitle('');
-      setHasChanges(false);
     }
   }, [noteId, notes, editingNote?.id]);
 
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEditedTitle(e.target.value);
+  const handleTitleChange = (title: string) => {
+    if (editingNote) {
+      setEditedTitle(title);
+    } else {
+      setNewNoteTitle(title);
+    }
     setHasChanges(true);
   };
 
   const handleContentChange = (content: string) => {
-    setEditedContent(content);
+    if (editingNote) {
+      setEditedContent(content);
+    } else {
+      setNewNoteContent(content);
+    }
     setHasChanges(true);
   };
 
@@ -64,10 +90,13 @@ function Notes() {
     if (!newNoteTitle.trim()) return;
     
     try {
-      await createNote(newNoteTitle, newNoteContent);
-      setIsCreatingNote(false);
+      await createNote(newNoteTitle, newNoteContent, folderId || undefined);
       setNewNoteTitle('');
       setNewNoteContent('');
+      setHasChanges(false);
+      if (folderId) {
+        navigate(`/folders?id=${folderId}`);
+      }
     } catch (error) {
       console.error('Error creating note:', error);
     }
@@ -90,6 +119,12 @@ function Notes() {
       setEditedTitle(editingNote.title);
       setHasChanges(false);
       navigate('/notes');
+    } else {
+      if (folderId) {
+        navigate(`/folders?id=${folderId}`);
+      } else {
+        navigate('/notes');
+      }
     }
   };
 
@@ -100,6 +135,7 @@ function Notes() {
   };
 
   const renderMainContent = () => {
+    console.log('Rendering main content with:', { noteId, editingNote, folderId });
     if (loading) {
       return (
         <div className="flex items-center justify-center p-8">
@@ -108,140 +144,85 @@ function Notes() {
       );
     }
 
-    if (isCreatingNote) {
+    if (!noteId || editingNote) {
+      console.log('Showing editor for:', editingNote ? 'editing note' : 'new note');
       return (
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-          <h2 className="text-lg font-semibold mb-4">New Note</h2>
-          <div className="flex flex-col gap-4">
-            <div>
-              <label htmlFor="noteTitle" className="block text-sm font-medium text-gray-700 mb-1">
-                Note Title <span className="text-red-500">*</span>
-              </label>
-              <input
-                id="noteTitle"
-                type="text"
-                value={newNoteTitle}
-                onChange={(e) => setNewNoteTitle(e.target.value)}
-                placeholder="Enter a title for your note"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                required
-                autoFocus
-              />
-            </div>
-            <div>
-              <label htmlFor="noteContent" className="block text-sm font-medium text-gray-700 mb-1">
-                Note Content
-              </label>
-              <Editor
-                content={newNoteContent}
-                onChange={setNewNoteContent}
-                placeholder="Write your note here..."
-              />
-            </div>
-            <div className="flex justify-end gap-3 mt-4">
-              <button
-                onClick={() => setIsCreatingNote(false)}
-                className="px-4 py-2 text-gray-700 hover:text-gray-900 transition-colors"
-                type="button"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleCreateNote}
-                disabled={!newNoteTitle.trim()}
-                className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90 transition-colors disabled:opacity-50"
-                type="button"
-              >
-                Create Note
-              </button>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    if (editingNote) {
-      return (
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-          <div className="mb-4">
-            <label htmlFor="editNoteTitle" className="block text-sm font-medium text-gray-700 mb-1">
-              Note Title
-            </label>
-            <input
-              id="editNoteTitle"
-              type="text"
-              value={editedTitle}
-              onChange={handleTitleChange}
-              className="w-full px-3 py-2 text-2xl font-bold text-gray-900 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-              placeholder="Enter note title"
+        <div className="absolute inset-0 flex flex-col">
+          <div className="flex-1">
+            <Editor
+              content={editingNote ? editedContent : newNoteContent}
+              title={editingNote ? editedTitle : newNoteTitle}
+              onChangeContent={handleContentChange}
+              onChangeTitle={handleTitleChange}
+              placeholder="Write your note here..."
             />
           </div>
-          <Editor
-            content={editedContent}
-            onChange={handleContentChange}
-            placeholder="Write your note here..."
-          />
-          <div className="flex justify-end gap-3 mt-4">
+          <div className="sticky bottom-8 right-8 flex items-center justify-end gap-4 z-30 px-8">
             <button
               onClick={handleCancelEdit}
-              className="px-4 py-2 text-gray-700 hover:text-gray-900 transition-colors"
-              type="button"
+              className="px-6 py-2 text-gray-700 bg-white rounded-full shadow-lg hover:bg-gray-50 transition-colors"
             >
               Cancel
             </button>
             <button
-              onClick={handleSaveNote}
-              disabled={!editedTitle.trim() || !hasChanges}
-              className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90 transition-colors disabled:opacity-50"
-              type="button"
+              onClick={editingNote ? handleSaveNote : handleCreateNote}
+              disabled={!(editingNote ? editedTitle : newNoteTitle).trim() || !hasChanges}
+              className="px-6 py-2 bg-primary text-white rounded-full shadow-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Save Changes
+              {editingNote ? 'Save Changes' : 'Save Note'}
             </button>
           </div>
         </div>
       );
     }
 
+    console.log('Showing notes list');
     return (
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-        <div className="flex items-start gap-4">
-          <div className="p-3 bg-primary/10 rounded">
-            <FileText className="w-6 h-6 text-primary" />
-          </div>
-          <div className="flex-1">
-            <h2 className="text-lg font-semibold mb-2">Welcome to Notes</h2>
-            <p className="text-gray-600">
-              Select a note from the sidebar to view its contents, or create a new note to get started.
-            </p>
-          </div>
+      <div className="p-8">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Notes</h1>
+          <button
+            onClick={() => {
+              console.log('Creating new note from list view');
+              navigate('/notes?folderId=' + (folderId || ''));
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            New Note
+          </button>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {notes.map((note) => (
+            <div
+              key={note.id}
+              onClick={() => navigate(`/notes?id=${note.id}`)}
+              className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer"
+            >
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">{note.title}</h3>
+              <div
+                className="prose prose-sm max-w-none line-clamp-3"
+                dangerouslySetInnerHTML={{ __html: note.content }}
+              />
+            </div>
+          ))}
         </div>
       </div>
     );
   };
 
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Notes</h1>
-          <p className="text-gray-600 mt-2">
-            Manage your notes and automatically extract tasks
-          </p>
-        </div>
-        <button
-          onClick={() => setIsCreatingNote(true)}
-          className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded hover:bg-primary/90 transition-colors"
-        >
-          <Plus className="w-5 h-5" />
-          New Note
-        </button>
+    <div className="h-full flex">
+      <div className="flex-1 overflow-y-auto">
+        {renderMainContent()}
       </div>
-
-      {error && (
-        <div className="bg-red-50 text-red-500 p-4 rounded mb-6">{error}</div>
+      
+      {editingNote && noteId && (
+        <NoteSummaryPanel
+          noteId={editingNote.id}
+          noteContent={editingNote.content}
+        />
       )}
-
-      {renderMainContent()}
     </div>
   );
 }
