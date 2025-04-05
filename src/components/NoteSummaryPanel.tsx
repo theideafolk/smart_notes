@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { openai } from '../lib/openai';
+import { generateSummary } from '../lib/openai';
 
 interface NoteSummaryPanelProps {
   noteId: string;
@@ -30,14 +30,9 @@ export async function generateAndStoreSummary(noteId: string, noteContent: strin
       }
     }
 
-    // Generate the structured summary
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [
-        {
-          role: "system",
-          content: noteContent.length > 500 
-            ? `You are a helpful assistant that creates well-organized summaries of product notes. Format your response in two parts:
+    // Generate the structured summary using the prompt
+    const prompt = noteContent.length > 500 
+      ? `You are a helpful assistant that creates well-organized summaries of product notes. Format your response in two parts:
 
 1. **TL;DR (up to 5 bullet points)**  
 Highlight only the most critical, high-level takeaways from the note — such as the app's core purpose, main features, and key technologies. Avoid detail or repetition. Include only the most important points, even if that means fewer than 5 bullet points.
@@ -56,7 +51,7 @@ Format your output like this:
 • ...
 • ...
 • ...`
-            : `You are a helpful assistant that creates concise summaries of product notes. Format your response as a TL;DR with up to 5 bullet points.
+      : `You are a helpful assistant that creates concise summaries of product notes. Format your response as a TL;DR with up to 5 bullet points.
 
 **TL;DR (up to 5 bullet points)**  
 Highlight only the most critical, high-level takeaways from the note — such as the app's core purpose, main features, and key technologies. Avoid detail or repetition. Include only the most important points, even if that means fewer than 5 bullet points.
@@ -66,18 +61,9 @@ Format your output like this:
 **TL;DR**
 • ...
 • ...
-• ...`
-        },
-        {
-          role: "user",
-          content: `Please provide a well-organized summary of this note following the format above:\n\n${noteContent}`
-        }
-      ],
-      max_tokens: noteContent.length > 500 ? 800 : 400,
-      temperature: 0.7,
-    });
+• ...`;
 
-    const generatedSummary = completion.choices[0].message.content || 'No summary generated.';
+    const generatedSummary = await generateSummary(`${prompt}\n\nPlease provide a well-organized summary of this note following the format above:\n\n${noteContent}`);
 
     // Upsert the summary in Supabase
     const { error } = await supabase
