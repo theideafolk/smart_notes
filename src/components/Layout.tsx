@@ -780,9 +780,9 @@ function Layout() {
             >
               <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-200 group-hover:border-primary transition-colors">
                 <img
-                  src={userProfile?.avatar ? `/${userProfile.avatar}` : '/profile_10015478.png'}
+                  src={userProfile?.avatar ? `/assets/${userProfile.avatar}` : '/assets/profile_10015478.png'}
                   alt="Profile"
-                  className="w-full h-full object-cover"
+                  className="w-8 h-8 rounded-full object-cover"
                 />
               </div>
               <div className="flex-1 text-left">

@@ -86,7 +86,7 @@ function Login() {
                     onClick={() => setShowAvatarSelector(true)}
                   >
                     <img
-                      src={selectedAvatar ? `/${selectedAvatar}` : '/profile_10015478.png'}
+                      src={selectedAvatar ? `/assets/${selectedAvatar}` : '/assets/profile_10015478.png'}
                       alt="Profile"
                       className="w-full h-full object-cover"
                     />
