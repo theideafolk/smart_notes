@@ -8,7 +8,15 @@ interface AuthState {
   loading: boolean;
   setUser: (user: any | null) => void;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, firstName: string, lastName: string, mobileNumber?: string, dateOfBirth?: string, avatar?: string) => Promise<void>;
+  signUp: (
+    email: string, 
+    password: string, 
+    firstName: string, 
+    lastName: string,
+    mobileNumber?: string,
+    dateOfBirth?: string,
+    avatar?: string
+  ) => Promise<void>;
   signOut: () => Promise<void>;
   updateUserProfile: (updates: Partial<User>) => Promise<void>;
   fetchUserProfile: () => Promise<void>;
@@ -38,7 +46,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (error) throw error;
   },
   
-  signUp: async (email: string, password: string, firstName: string, lastName: string, mobileNumber?: string, dateOfBirth?: string, avatar?: string) => {
+  signUp: async (email, password, firstName, lastName, mobileNumber, dateOfBirth, avatar) => {
     try {
       // Check if user already exists to provide better error message
       const { data: existingUsers } = await supabase
@@ -68,7 +76,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           user_last_name: lastName,
           user_mobile_number: mobileNumber || null,
           user_date_of_birth: dateOfBirth ? new Date(dateOfBirth).toISOString() : null,
-          user_avatar: avatar || 'profile.png'
+          user_avatar: avatar || null
         });
         
         if (profileError) {

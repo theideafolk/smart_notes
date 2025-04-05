@@ -11,9 +11,6 @@ import {
   Trash2,
   MessageSquare,
   PanelLeftClose,
-<<<<<<< Updated upstream
-  PanelLeftOpen
-=======
   PanelLeftOpen,
   LogOut,
   User,
@@ -28,14 +25,10 @@ import {
   ChevronRight,
   PanelRightClose,
   PanelRightOpen
->>>>>>> Stashed changes
 } from 'lucide-react';
 import { useNoteStore } from '../store/noteStore';
 import { useChatStore } from '../store/chatStore';
 import { useSidebarStore } from '../store/sidebarStore';
-<<<<<<< Updated upstream
-import { useEffect } from 'react';
-=======
 import { useAuthStore } from '../store/authStore';
 import { useFolderStore, type Folder } from '../store/folderStore';
 import AvatarSelector from './AvatarSelector';
@@ -52,7 +45,6 @@ type ClipboardItem = {
   name: string;
   action: 'copy' | 'cut';
 } | null;
->>>>>>> Stashed changes
 
 const navItems = [
   { path: '/notes', icon: FileText, label: 'Notes' },
@@ -63,11 +55,6 @@ const navItems = [
 function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
-<<<<<<< Updated upstream
-  const { notes, fetchNotes, deleteNote } = useNoteStore();
-  const { sessions, fetchSessions, setCurrentSession } = useChatStore();
-  const { isOpen, toggle } = useSidebarStore();
-=======
   const { notes, fetchNotes, deleteNote, moveNote, copyNote } = useNoteStore();
   const { sessions, fetchSessions, setCurrentSession } = useChatStore();
   const { isOpen, toggle } = useSidebarStore();
@@ -134,14 +121,10 @@ function Layout() {
 
   const searchParams = new URLSearchParams(location.search);
   const isViewingExistingNote = location.pathname === '/notes' && searchParams.get('id') !== null;
->>>>>>> Stashed changes
 
   useEffect(() => {
     fetchNotes();
     fetchSessions();
-<<<<<<< Updated upstream
-  }, [fetchNotes, fetchSessions]);
-=======
     fetchFolders();
   }, [fetchNotes, fetchSessions, fetchFolders]);
 
@@ -184,7 +167,6 @@ function Layout() {
     setEditingFolder(null);
     setSelectedFolder(null);
   };
->>>>>>> Stashed changes
 
   const handleDeleteNote = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this note?')) {
@@ -211,15 +193,6 @@ function Layout() {
     navigate('/');
   };
 
-<<<<<<< Updated upstream
-  return (
-    <div className="flex h-screen">
-      {/* Sidebar */}
-      <aside className={`
-        bg-white border-r border-gray-200 flex flex-col transition-all duration-300
-        ${isOpen ? 'w-64' : 'w-0 overflow-hidden'}
-      `}>
-=======
   // Close profile menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -695,7 +668,6 @@ function Layout() {
           ${!isOpen && 'overflow-hidden'}
         `}
       >
->>>>>>> Stashed changes
         {/* Fixed header */}
         <div className="p-6 border-b border-gray-100">
           <div className="flex items-center justify-between">
@@ -726,20 +698,9 @@ function Layout() {
               
               return (
                 <div key={item.path}>
-<<<<<<< Updated upstream
-                  <Link
-                    to={item.path}
-                    onClick={item.label === 'Chatbot' ? handleChatbotClick : undefined}
-                    className={`flex items-center gap-3 px-6 py-3 text-sm font-medium transition-colors ${
-                      isActive
-                        ? 'text-primary bg-primary/5'
-                        : 'text-gray-600 hover:text-primary hover:bg-gray-50'
-                    }`}
-=======
                   <div 
                     className="flex items-center justify-between px-6 py-3"
                     onContextMenu={(e) => handleSectionContextMenu(e, item.label)}
->>>>>>> Stashed changes
                   >
                     <div className="flex items-center gap-1">
                       <button
@@ -788,25 +749,6 @@ function Layout() {
 
                   {/* Display chat sessions under Chatbot menu item */}
                   {item.label === 'Chatbot' && !isCollapsed && (
-                    <div className="ml-6 mt-2 border-l-2 border-gray-100 pl-3">
-                      {sessions.map((session) => (
-                        <div
-                          key={session.id}
-                          className="group relative py-2 px-4 hover:bg-gray-50"
-                        >
-                          <Link
-                            to={`/chatbot?session=${session.id}`}
-                            className="block w-full text-left text-sm text-gray-600 hover:text-primary truncate pr-4"
-                          >
-                            {session.title}
-                          </Link>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Display chat sessions under Chatbot menu item */}
-                  {item.label === 'Chatbot' && isActive && (
                     <div className="ml-6 mt-2 border-l-2 border-gray-100 pl-3">
                       {sessions.map((session) => (
                         <div
@@ -905,29 +847,17 @@ function Layout() {
       )}
 
       {/* Main content */}
-<<<<<<< Updated upstream
-      <main className="flex-1 overflow-auto relative">
-=======
       <main className={`flex-1 overflow-auto relative transition-all duration-300 ${isRightPanelOpen && isViewingExistingNote ? 'mr-80' : ''}`}>
->>>>>>> Stashed changes
         {/* Small toggle button that's only visible when sidebar is closed */}
         {!isOpen && (
           <button
             onClick={toggle}
-<<<<<<< Updated upstream
-            className="absolute top-4 left-4 z-10 p-2 rounded-full bg-white shadow-md hover:bg-gray-50 transition-colors"
-=======
             className="absolute top-4 left-4 z-30 p-2 rounded-full bg-white shadow-md hover:bg-gray-50 transition-colors"
->>>>>>> Stashed changes
           >
             <PanelLeftOpen className="w-5 h-5 text-gray-600" />
           </button>
         )}
-<<<<<<< Updated upstream
-        <Outlet />
-=======
         <Outlet context={{ isRightPanelOpen: isViewingExistingNote && isRightPanelOpen, setIsRightPanelOpen }} />
->>>>>>> Stashed changes
       </main>
 
       {/* Right Panel Toggle Button - Only show when viewing an existing note */}

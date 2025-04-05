@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Brain, Loader2, Mail, Lock, User, Calendar, Phone } from 'lucide-react';
+import { Brain, Loader2, Mail, Lock, User, Calendar } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
-import SplitPhoneInput from '../components/SplitPhoneInput';
 import AvatarSelector from '../components/AvatarSelector';
+import SplitPhoneInput from '../components/SplitPhoneInput';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -12,11 +12,11 @@ function Login() {
   const [lastName, setLastName] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
-  const [avatar, setAvatar] = useState('profile.png'); // Default avatar
+  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
+  const [showAvatarSelector, setShowAvatarSelector] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showAvatarSelector, setShowAvatarSelector] = useState(false);
   const navigate = useNavigate();
   const { signIn, signUp } = useAuthStore();
 
@@ -30,8 +30,7 @@ function Login() {
         if (!email || !password || !firstName || !lastName) {
           throw new Error('Please fill in all required fields');
         }
-        await signUp(email, password, firstName, lastName, mobileNumber, dateOfBirth, avatar);
-        // Show more friendly message about email verification being disabled
+        await signUp(email, password, firstName, lastName, mobileNumber || undefined, dateOfBirth || undefined, selectedAvatar || undefined);
         alert('Account created successfully! You can now sign in with your credentials.');
         setIsSignUp(false);
       } else {
@@ -47,18 +46,6 @@ function Login() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleModeSwitch = () => {
-    setIsSignUp(!isSignUp);
-    setError('');
-    setEmail('');
-    setPassword('');
-    setFirstName('');
-    setLastName('');
-    setMobileNumber('');
-    setDateOfBirth('');
-    setAvatar('profile.png');
   };
 
   return (
@@ -83,7 +70,7 @@ function Login() {
             }
           </p>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <div className="bg-red-50 text-red-500 p-4 rounded-md text-sm">
                 {error}
@@ -93,69 +80,71 @@ function Login() {
             {isSignUp && (
               <>
                 {/* Avatar Selection */}
-                <div className="flex justify-center mb-6">
+                <div className="flex flex-col items-center mb-4">
+                  <div 
+                    className="w-20 h-20 rounded-full overflow-hidden border-2 border-gray-200 cursor-pointer hover:border-primary transition-colors"
+                    onClick={() => setShowAvatarSelector(true)}
+                  >
+                    <img
+                      src={selectedAvatar ? `/${selectedAvatar}` : '/profile_10015478.png'}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                   <button
                     type="button"
                     onClick={() => setShowAvatarSelector(true)}
-                    className="relative group"
+                    className="mt-2 text-sm text-primary hover:underline"
                   >
-                    <img
-                      src={`/${avatar}`}
-                      alt="Selected avatar"
-                      className="w-24 h-24 rounded-full border-2 border-gray-200 group-hover:border-primary transition-colors"
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                      <span className="text-white text-sm">Change Avatar</span>
-                    </div>
+                    Choose Avatar
                   </button>
                 </div>
 
-                {/* First Name and Last Name */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label
-                      htmlFor="firstName"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      First Name
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <User className="h-5 w-5 text-gray-400" />
-                      </div>
-                      <input
-                        id="firstName"
-                        type="text"
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                        placeholder="John"
-                        required
-                      />
+                {/* First Name */}
+                <div className="space-y-1">
+                  <label
+                    htmlFor="firstName"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    First Name *
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <User className="h-5 w-5 text-gray-400" />
                     </div>
+                    <input
+                      id="firstName"
+                      type="text"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                      placeholder="John"
+                      required
+                    />
                   </div>
+                </div>
 
-                  <div className="space-y-1">
-                    <label
-                      htmlFor="lastName"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Last Name
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <User className="h-5 w-5 text-gray-400" />
-                      </div>
-                      <input
-                        id="lastName"
-                        type="text"
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                        placeholder="Doe"
-                        required
-                      />
+                {/* Last Name */}
+                <div className="space-y-1">
+                  <label
+                    htmlFor="lastName"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Last Name *
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <User className="h-5 w-5 text-gray-400" />
                     </div>
+                    <input
+                      id="lastName"
+                      type="text"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                      placeholder="Doe"
+                      required
+                    />
                   </div>
                 </div>
 
@@ -167,16 +156,11 @@ function Login() {
                   >
                     Mobile Number
                   </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Phone className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <SplitPhoneInput
-                      value={mobileNumber}
-                      onChange={setMobileNumber}
-                      className="w-full"
-                    />
-                  </div>
+                  <SplitPhoneInput
+                    value={mobileNumber}
+                    onChange={setMobileNumber}
+                    disabled={false}
+                  />
                 </div>
 
                 {/* Date of Birth */}
@@ -203,12 +187,13 @@ function Login() {
               </>
             )}
 
+            {/* Email */}
             <div className="space-y-1">
               <label
                 htmlFor="email"
                 className="block text-sm font-medium text-gray-700"
               >
-                Email address
+                Email *
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -217,21 +202,22 @@ function Login() {
                 <input
                   id="email"
                   type="email"
-                  required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                   placeholder="you@example.com"
+                  required
                 />
               </div>
             </div>
 
+            {/* Password */}
             <div className="space-y-1">
               <label
                 htmlFor="password"
                 className="block text-sm font-medium text-gray-700"
               >
-                Password
+                Password *
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -269,32 +255,34 @@ function Login() {
                 'Sign In'
               )}
             </button>
-
-            <div className="text-center mt-6">
-              <button
-                type="button"
-                onClick={handleModeSwitch}
-                className="text-primary hover:underline"
-              >
-                {isSignUp ? 'Already have an account? Sign in' : 'Need an account? Sign up'}
-              </button>
-            </div>
           </form>
-        </div>
 
-        <p className="text-center text-gray-500 text-sm mt-6">
-          By signing in, you agree to our Terms of Service and Privacy Policy.
-        </p>
+          <div className="mt-6 text-center">
+            <button
+              type="button"
+              onClick={() => {
+                setIsSignUp(!isSignUp);
+                setError('');
+              }}
+              className="text-sm text-primary hover:underline"
+            >
+              {isSignUp
+                ? 'Already have an account? Sign in'
+                : "Don't have an account? Sign up"}
+            </button>
+          </div>
+        </div>
       </div>
 
+      {/* Avatar Selector Modal */}
       <AvatarSelector
         isOpen={showAvatarSelector}
         onClose={() => setShowAvatarSelector(false)}
-        onSelect={(selectedAvatar) => {
-          setAvatar(selectedAvatar);
+        onSelect={(avatar) => {
+          setSelectedAvatar(avatar);
           setShowAvatarSelector(false);
         }}
-        currentAvatar={avatar}
+        currentAvatar={selectedAvatar}
       />
     </div>
   );

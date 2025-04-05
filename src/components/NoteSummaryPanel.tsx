@@ -40,7 +40,7 @@ export async function generateAndStoreSummary(noteId: string, noteContent: strin
             ? `You are a helpful assistant that creates well-organized summaries of product notes. Format your response in two parts:
 
 1. **TL;DR (up to 5 bullet points)**  
-Highlight only the most critical, high-level takeaways from the note — such as the app's core purpose, main features, and key technologies. Avoid detail or repetition. Include only as many points as are truly essential to understand the note's key points.
+Highlight only the most critical, high-level takeaways from the note — such as the app's core purpose, main features, and key technologies. Avoid detail or repetition. Include only the most important points, even if that means fewer than 5 bullet points.
 
 2. **Full Summary (as many points as needed)**  
 List only the valuable and distinct insights that help the reader understand the project. Do not repeat content from the TL;DR unless you're adding new context or detail. Include specific UX interactions or structural elements (e.g., how customization works, user flows, or tech stack). Keep each bullet short and focused — prefer brief, scannable points over long paragraphs.
@@ -48,9 +48,9 @@ List only the valuable and distinct insights that help the reader understand the
 Format your output like this:
 
 **TL;DR**
-• [Most important point]
-• [Second most important point]
-• [Additional key points as needed]
+• ...
+• ...
+• ...
 
 **Full Summary**
 • ...
@@ -59,14 +59,14 @@ Format your output like this:
             : `You are a helpful assistant that creates concise summaries of product notes. Format your response as a TL;DR with up to 5 bullet points.
 
 **TL;DR (up to 5 bullet points)**  
-Highlight only the most critical, high-level takeaways from the note — such as the app's core purpose, main features, and key technologies. Avoid detail or repetition. Include only as many points as are truly essential to understand the note's key points.
+Highlight only the most critical, high-level takeaways from the note — such as the app's core purpose, main features, and key technologies. Avoid detail or repetition. Include only the most important points, even if that means fewer than 5 bullet points.
 
 Format your output like this:
 
 **TL;DR**
-• [Most important point]
-• [Second most important point]
-• [Additional key points as needed]`
+• ...
+• ...
+• ...`
         },
         {
           role: "user",
