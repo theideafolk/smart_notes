@@ -18,7 +18,11 @@ export const getConfig = () => {
 
   // Throw error if required values are missing
   if (!config.supabaseUrl || !config.supabaseAnonKey) {
-    throw new Error('Missing required environment variables');
+    throw new Error('Missing Supabase environment variables');
+  }
+
+  if (!config.openaiApiKey) {
+    console.warn('OpenAI API key is not configured. Some features may not work.');
   }
 
   return config;
