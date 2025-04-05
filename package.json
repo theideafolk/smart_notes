@@ -4,10 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "node scripts/generate-config.js && vite",
+    "build": "node scripts/generate-config.js && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "generate-config": "node scripts/generate-config.js",
     "supabase:functions:serve": "supabase functions serve --env-file .env",
     "supabase:functions:deploy": "supabase functions deploy extract-tasks"
   },
