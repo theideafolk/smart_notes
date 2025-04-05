@@ -6,3 +6,6 @@
   VITE_SUPABASE_ANON_KEY = ""
   VITE_SUPABASE_URL = ""
   VITE_OPENAI_API_KEY = ""
+
+[[plugins]]
+  package = "@netlify/plugin-ignore-build-step"
