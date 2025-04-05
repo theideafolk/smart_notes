@@ -9,9 +9,17 @@ declare global {
 }
 
 export const getConfig = () => {
-  return {
-    supabaseUrl: window.ENV?.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL,
-    supabaseAnonKey: window.ENV?.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY,
-    openaiApiKey: window.ENV?.VITE_OPENAI_API_KEY || import.meta.env.VITE_OPENAI_API_KEY
+  // Always prefer window.ENV values over import.meta.env
+  const config = {
+    supabaseUrl: window.ENV?.VITE_SUPABASE_URL || '',
+    supabaseAnonKey: window.ENV?.VITE_SUPABASE_ANON_KEY || '',
+    openaiApiKey: window.ENV?.VITE_OPENAI_API_KEY || ''
   };
+
+  // Throw error if required values are missing
+  if (!config.supabaseUrl || !config.supabaseAnonKey) {
+    throw new Error('Missing required environment variables');
+  }
+
+  return config;
 }; 

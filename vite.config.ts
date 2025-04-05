@@ -32,9 +32,9 @@ export default defineConfig({
     }
   },
   define: {
-    // Prevent Vite from embedding these env vars in the build
-    'import.meta.env.VITE_SUPABASE_URL': 'window.ENV?.VITE_SUPABASE_URL',
-    'import.meta.env.VITE_SUPABASE_ANON_KEY': 'window.ENV?.VITE_SUPABASE_ANON_KEY',
-    'import.meta.env.VITE_OPENAI_API_KEY': 'window.ENV?.VITE_OPENAI_API_KEY'
+    // Empty the environment variables during build
+    'import.meta.env.VITE_SUPABASE_URL': '""',
+    'import.meta.env.VITE_SUPABASE_ANON_KEY': '""',
+    'import.meta.env.VITE_OPENAI_API_KEY': '""'
   }
 });
