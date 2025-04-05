@@ -20,21 +20,10 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: [
-            'react',
-            'react-dom',
-            'react-router-dom',
-            '@supabase/supabase-js',
-            'openai'
-          ]
-        }
-      }
-    }
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          editor: ['@tiptap/react', '@tiptap/starter-kit', '@tiptap/extension-text-style', '@tiptap/extension-font-family', '@tiptap/extension-font-size', '@tiptap/extension-text-align'],
+        },
+      },
+    },
   },
-  define: {
-    // Empty the environment variables during build
-    'import.meta.env.VITE_SUPABASE_URL': '""',
-    'import.meta.env.VITE_SUPABASE_ANON_KEY': '""',
-    'import.meta.env.VITE_OPENAI_API_KEY': '""'
-  }
 });

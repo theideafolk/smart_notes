@@ -1,7 +1,9 @@
 [build]
-  command = "npm install --legacy-peer-deps && node scripts/generate-config.js && npm run build"
+  command = "npm install --legacy-peer-deps && npm run build"
   publish = "dist"
 
 [build.environment]
-  SECRETS_SCAN_OMIT_PATHS = "dist/config.js,public/config.js"
   SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_ANON_KEY,VITE_OPENAI_API_KEY"
+
+[[plugins]]
+  package = "@netlify/plugin-ignore-build-step"
