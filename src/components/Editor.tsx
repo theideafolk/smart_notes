@@ -143,10 +143,10 @@ const Editor: React.FC<EditorProps> = ({
               </div>
             </BubbleMenu>
           )}
-          <EditorContent 
-            editor={editor} 
+      <EditorContent 
+        editor={editor} 
             className="prose prose-lg max-w-none flex-1 min-h-full"
-          />
+      />
         </div>
       </div>
     </div>

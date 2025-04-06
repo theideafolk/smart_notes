@@ -224,7 +224,9 @@ function Layout() {
 
   const handleAvatarSelect = async (avatar: string) => {
     try {
-      await updateUserProfile({ avatar });
+      // Remove the 'assets/' prefix from the avatar name before saving
+      const avatarName = avatar.replace('assets/', '');
+      await updateUserProfile({ avatar: avatarName });
       setShowAvatarSelector(false);
     } catch (error) {
       console.error('Error updating avatar:', error);
@@ -782,7 +784,7 @@ function Layout() {
                 <img
                   src={userProfile?.avatar ? `/assets/${userProfile.avatar}` : '/assets/profile_10015478.png'}
                   alt="Profile"
-                  className="w-8 h-8 rounded-full object-cover"
+                  className="w-full h-full object-cover"
                 />
               </div>
               <div className="flex-1 text-left">

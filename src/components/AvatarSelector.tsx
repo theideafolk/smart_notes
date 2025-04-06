@@ -8,16 +8,16 @@ interface AvatarSelectorProps {
 }
 
 const avatars = [
-  'assets/profile_10015478.png',
-  'assets/profile_10015479.png',
-  'assets/profile_10015480.png',
-  'assets/profile_10015481.png',
-  'assets/profile_10015482.png',
-  'assets/profile_10015483.png',
-  'assets/profile_10015484.png',
-  'assets/profile_10015485.png',
-  'assets/profile_10015486.png',
-  'assets/profile_10015487.png'
+  'assets/profile_10015478.png', // Default avatar
+  'assets/hacker.png',
+  'assets/human.png',
+  'assets/man.png',
+  'assets/man(1).png',
+  'assets/profile.png',
+  'assets/user.png',
+  'assets/woman.png',
+  'assets/woman(1).png',
+  'assets/woman(2).png'
 ];
 
 const AvatarSelector: React.FC<AvatarSelectorProps> = ({
