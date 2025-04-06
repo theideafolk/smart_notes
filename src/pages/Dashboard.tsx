@@ -27,7 +27,9 @@ function Dashboard() {
 
   const handleBrainStorm = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate('/chatbot', { state: { query } });
+    if (!query.trim()) return;
+    navigate(`/chatbot?q=${encodeURIComponent(query.trim())}`);
+    setQuery('');
   };
 
   const renderContent = (content: string) => {

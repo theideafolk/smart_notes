@@ -43,8 +43,14 @@ export const useFolderStore = create<FolderState>((set, get) => ({
 
   createFolder: async (name: string, parentId?: string | null) => {
     try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError) throw authError;
+      if (!user) throw new Error('Not authenticated');
+
       const { data, error } = await supabase.rpc('create_folder', {
+        user_id: user.id,
         folder_name: name,
+        folder_description: null,
         parent_folder_id: parentId
       });
       if (error) throw error;

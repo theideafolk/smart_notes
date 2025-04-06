@@ -101,25 +101,22 @@ export default function Chatbot() {
   // Handle session changes and initial load
   useEffect(() => {
     const sessionId = searchParams.get('session');
+    const query = searchParams.get('q');
+
     if (sessionId) {
       setCurrentSession(sessionId);
+    } else if (query && !loading && messages.length === 0) {
+      // If there's a query parameter but no session, create a new session with the query
+      sendMessage(query);
     } else if (location.pathname === '/chatbot' && !location.search) {
       clearSession();
     }
-  }, [location.pathname, location.search, clearSession, setCurrentSession, searchParams]);
+  }, [location.pathname, location.search, clearSession, setCurrentSession, searchParams, loading, messages.length, sendMessage]);
 
   useEffect(() => {
     // Scroll to bottom of messages
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
-
-  // Handle initial query from URL
-  useEffect(() => {
-    const query = searchParams.get('q');
-    if (query && !loading && messages.length === 0) {
-      sendMessage(query);
-    }
-  }, [searchParams, loading, messages.length, sendMessage]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
