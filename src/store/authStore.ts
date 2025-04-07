@@ -20,6 +20,7 @@ interface AuthState {
   signOut: () => Promise<void>;
   updateUserProfile: (updates: Partial<User>) => Promise<void>;
   fetchUserProfile: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -141,6 +142,34 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
     } catch (error) {
       console.error('Error fetching user profile:', error);
+    }
+  },
+  
+  deleteAccount: async () => {
+    const { user } = get();
+    if (!user) throw new Error('No user found');
+    
+    try {
+      // Get the current session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) throw sessionError;
+      if (!session) throw new Error('No active session');
+
+      // Call the Edge Function to delete the account
+      const { data, error } = await supabase.functions.invoke('delete-account', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
+      });
+      
+      if (error) throw error;
+      
+      // Clear the local state
+      set({ user: null, userProfile: null });
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      throw new Error('Failed to delete account. Please try again or contact support.');
     }
   },
 }));
